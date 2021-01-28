@@ -10,14 +10,14 @@
              [paginator]="true" [rows]="20" [totalRecords]="1118" [loading]="loading">
       <ng-template pTemplate="header">
         <tr>
-          <th>Name</th>
-          <th>Details</th>
+          <th style="text-align: center">Name</th>
+          <th style="text-align: center">Details</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-pokemon>
+      <ng-template pTemplate="body" let-pokemon let-i="rowIndex">
         <tr>
           <td style="text-align: center">{{pokemon.name}}</td>
-          <td style="text-align: center"><i class="pi pi-info-circle" (click)="showDetails()"></i></td>
+          <td style="text-align: center"><i class="pi pi-info-circle" (click)="showDetails(i)"></i></td>
         </tr>
       </ng-template>
 

@@ -1,5 +1,6 @@
-import {Component, OnInit} from '@angular/core';
+import {AfterViewInit, ChangeDetectorRef, Component, OnInit} from '@angular/core';
 import {PokemonService} from '../../services/pokemon.service';
+import {Router} from '@angular/router';
 
 @Component({
   selector: 'app-overview',
@@ -11,10 +12,11 @@ export class OverviewComponent implements OnInit {
   pokemonData: any;
   pokemonList: any;
 
-  loading = false;
+  loading = true;
   firstLoad = true;
 
-  constructor(private pokemonService: PokemonService) {
+  constructor(private route: Router,
+              private pokemonService: PokemonService) {
   }
 
   ngOnInit(): void {}
@@ -27,22 +29,22 @@ export class OverviewComponent implements OnInit {
       this.pokemonService.getAllPokemon().subscribe(data => {
         this.pokemonData = data;
         this.pokemonList = data.results;
-        console.log(this.pokemonList);
 
         this.loading = false;
       });
     } else {
+
       this.pokemonService.getPokemonWithOffset($event.first).subscribe(data => {
         this.pokemonData = data;
         this.pokemonList = data.results;
-        console.log(this.pokemonList);
 
         this.loading = false;
       });
     }
   }
 
-  showDetails() {
-
+  showDetails(index: number): void{
+    // becuase ids start from 1 and not zero
+    this.route.navigate(['details/' + (index + 1)]);
   }
 }
