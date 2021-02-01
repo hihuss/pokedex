@@ -98,4 +98,9 @@ export class DetailPageComponent implements OnInit {
       },
     ];
   }
+
+  setPokemon(pokemon: any): any {
+    this.pokemon = pokemon;
+  }
+
 }

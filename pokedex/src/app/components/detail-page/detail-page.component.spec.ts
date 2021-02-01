@@ -1,25 +1,143 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import { DetailPageComponent } from './detail-page.component';
+import {Component, CUSTOM_ELEMENTS_SCHEMA, DebugElement, Injectable} from '@angular/core';
+import {BehaviorSubject, of} from 'rxjs';
+import {ActivatedRoute, Params} from '@angular/router';
+import {RouterTestingModule} from '@angular/router/testing';
+import {HttpClientTestingModule} from '@angular/common/http/testing';
+import {By} from '@angular/platform-browser';
+import {TreeTableModule} from 'primeng/treetable';
+
+@Injectable()
+export class ActivatedRouteStub
+{
+  private subject = new BehaviorSubject(this.testParams);
+  params = this.subject.asObservable();
+
+  private testPathParams: {} = {};
+
+  get testParams(): any {
+    return this.testPathParams; }
+
+  set testParams(params: any) {
+    this.testPathParams = params;
+    this.subject.next(params);
+  }
+}
 
 describe('DetailPageComponent', () => {
+  let mockParams: any;
+  let mockActivatedRoute: any;
+
   let component: DetailPageComponent;
   let fixture: ComponentFixture<DetailPageComponent>;
 
+  let debugElement: DebugElement;
+  let element: HTMLElement;
+
+  let helpComponent: HelpComponent;
+
   beforeEach(async () => {
+    mockParams = of<Params>({id: 10});
+    mockActivatedRoute = {params: mockParams};
+
     await TestBed.configureTestingModule({
-      declarations: [ DetailPageComponent ]
+      imports: [RouterTestingModule, HttpClientTestingModule, TreeTableModule],
+      declarations: [ DetailPageComponent ],
+      schemas: [CUSTOM_ELEMENTS_SCHEMA],
+      providers: [
+        {provide: ActivatedRoute, useValue: mockActivatedRoute}
+      ]
     })
-    .compileComponents();
+      .compileComponents();
+
   });
 
   beforeEach(() => {
     fixture = TestBed.createComponent(DetailPageComponent);
     component = fixture.componentInstance;
+
+    debugElement = fixture.debugElement;
+    element = debugElement.nativeElement;
+
+    mockActivatedRoute.testParams = {id:  10};
+
+    helpComponent = TestBed.createComponent(HelpComponent).componentInstance;
+
     fixture.detectChanges();
   });
 
   it('should create', () => {
     expect(component).toBeTruthy();
   });
+
+  it('pokemon id should be set to 10', () => {
+    expect(component.pokemonId).toBe(10);
+  });
+
+  it('title should not be shown if pokemon not loaded', () => {
+    const pokemonName = element.querySelector('#pokemonName');
+    expect(pokemonName).toBeFalsy();
+  });
+
+
+  it('should show pokemon name as \'caterpie\' ', () => {
+    component.setPokemon(helpComponent.pokemon);
+    fixture.detectChanges();
+
+    const pokemonName = debugElement.query(By.css('#pokemonName')).nativeElement;
+    expect(pokemonName).toBeTruthy();
+    expect(pokemonName.textContent).toBe(helpComponent.pokemon.name.toUpperCase());
+  });
+
+  it('should show correct number of possible moves', () => {
+      component.setPokemon(helpComponent.pokemon);
+      component.createPokemonDataTree();
+      fixture.detectChanges();
+
+      const elementTree = debugElement.query(By.css('p-tree')).nativeElement;
+      expect(elementTree).toBeTruthy();
+      expect(elementTree.value[5].children.length).toBe(helpComponent.pokemon.moves.length);
+    }
+  );
+
+  it('should show correct order number', () => {
+      component.setPokemon(helpComponent.pokemon);
+      component.createPokemonDataTree();
+      fixture.detectChanges();
+
+      const elementTree = debugElement.query(By.css('p-tree')).nativeElement;
+      expect(elementTree).toBeTruthy();
+      expect(elementTree.value[0].label).toContain(helpComponent.pokemon.order);
+    }
+  );
+
 });
+
+@Component({
+  selector: 'app-host-component',
+  template: '',
+})
+class HelpComponent {
+
+  pokemon =
+    {abilities:
+        [{ability: {name: 'shield-dust', url: 'https://pokeapi.co/api/v2/ability/19/'}, is_hidden: false, slot: 1}, {ability: {name: 'run-away', url: 'https://pokeapi.co/api/v2/ability/50/'}, is_hidden: true, slot: 3}],
+      base_experience: 39,
+      forms: [{name: 'caterpie', url: 'https://pokeapi.co/api/v2/pokemon-form/10/'}],
+      height: 3,
+      held_items: [],
+      id: 10,
+      is_default: true,
+      location_area_encounters: 'https://pokeapi.co/api/v2/pokemon/10/encounters',
+      moves: [{move: {name: 'tackle', url: 'https://pokeapi.co/api/v2/move/33/'}, version_group_details: [{level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'red-blue', url: 'https://pokeapi.co/api/v2/version-group/1/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'yellow', url: 'https://pokeapi.co/api/v2/version-group/2/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'gold-silver', url: 'https://pokeapi.co/api/v2/version-group/3/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'crystal', url: 'https://pokeapi.co/api/v2/version-group/4/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'ruby-sapphire', url: 'https://pokeapi.co/api/v2/version-group/5/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'emerald', url: 'https://pokeapi.co/api/v2/version-group/6/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'firered-leafgreen', url: 'https://pokeapi.co/api/v2/version-group/7/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'diamond-pearl', url: 'https://pokeapi.co/api/v2/version-group/8/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'platinum', url: 'https://pokeapi.co/api/v2/version-group/9/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'heartgold-soulsilver', url: 'https://pokeapi.co/api/v2/version-group/10/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'black-white', url: 'https://pokeapi.co/api/v2/version-group/11/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'colosseum', url: 'https://pokeapi.co/api/v2/version-group/12/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'xd', url: 'https://pokeapi.co/api/v2/version-group/13/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'black-2-white-2', url: 'https://pokeapi.co/api/v2/version-group/14/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'x-y', url: 'https://pokeapi.co/api/v2/version-group/15/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'omega-ruby-alpha-sapphire', url: 'https://pokeapi.co/api/v2/version-group/16/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'sun-moon', url: 'https://pokeapi.co/api/v2/version-group/17/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'ultra-sun-ultra-moon', url: 'https://pokeapi.co/api/v2/version-group/18/'}}]}, {move: {name: 'string-shot', url: 'https://pokeapi.co/api/v2/move/81/'}, version_group_details: [{level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'red-blue', url: 'https://pokeapi.co/api/v2/version-group/1/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'yellow', url: 'https://pokeapi.co/api/v2/version-group/2/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'gold-silver', url: 'https://pokeapi.co/api/v2/version-group/3/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'crystal', url: 'https://pokeapi.co/api/v2/version-group/4/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'ruby-sapphire', url: 'https://pokeapi.co/api/v2/version-group/5/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'emerald', url: 'https://pokeapi.co/api/v2/version-group/6/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'firered-leafgreen', url: 'https://pokeapi.co/api/v2/version-group/7/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'diamond-pearl', url: 'https://pokeapi.co/api/v2/version-group/8/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'platinum', url: 'https://pokeapi.co/api/v2/version-group/9/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'heartgold-soulsilver', url: 'https://pokeapi.co/api/v2/version-group/10/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'heartgold-soulsilver', url: 'https://pokeapi.co/api/v2/version-group/10/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'black-white', url: 'https://pokeapi.co/api/v2/version-group/11/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'colosseum', url: 'https://pokeapi.co/api/v2/version-group/12/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'xd', url: 'https://pokeapi.co/api/v2/version-group/13/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'black-2-white-2', url: 'https://pokeapi.co/api/v2/version-group/14/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'x-y', url: 'https://pokeapi.co/api/v2/version-group/15/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'omega-ruby-alpha-sapphire', url: 'https://pokeapi.co/api/v2/version-group/16/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'sun-moon', url: 'https://pokeapi.co/api/v2/version-group/17/'}}, {level_learned_at: 1, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'ultra-sun-ultra-moon', url: 'https://pokeapi.co/api/v2/version-group/18/'}}]}, {move: {name: 'snore', url: 'https://pokeapi.co/api/v2/move/173/'}, version_group_details: [{level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'platinum', url: 'https://pokeapi.co/api/v2/version-group/9/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'heartgold-soulsilver', url: 'https://pokeapi.co/api/v2/version-group/10/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'black-2-white-2', url: 'https://pokeapi.co/api/v2/version-group/14/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'omega-ruby-alpha-sapphire', url: 'https://pokeapi.co/api/v2/version-group/16/'}}]}, {move: {name: 'bug-bite', url: 'https://pokeapi.co/api/v2/move/450/'}, version_group_details: [{level_learned_at: 15, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'platinum', url: 'https://pokeapi.co/api/v2/version-group/9/'}}, {level_learned_at: 15, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'heartgold-soulsilver', url: 'https://pokeapi.co/api/v2/version-group/10/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'heartgold-soulsilver', url: 'https://pokeapi.co/api/v2/version-group/10/'}}, {level_learned_at: 15, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'black-white', url: 'https://pokeapi.co/api/v2/version-group/11/'}}, {level_learned_at: 15, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'black-2-white-2', url: 'https://pokeapi.co/api/v2/version-group/14/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'black-2-white-2', url: 'https://pokeapi.co/api/v2/version-group/14/'}}, {level_learned_at: 15, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'x-y', url: 'https://pokeapi.co/api/v2/version-group/15/'}}, {level_learned_at: 15, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'omega-ruby-alpha-sapphire', url: 'https://pokeapi.co/api/v2/version-group/16/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'omega-ruby-alpha-sapphire', url: 'https://pokeapi.co/api/v2/version-group/16/'}}, {level_learned_at: 9, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'sun-moon', url: 'https://pokeapi.co/api/v2/version-group/17/'}}, {level_learned_at: 9, move_learn_method: {name: 'level-up', url: 'https://pokeapi.co/api/v2/move-learn-method/1/'}, version_group: {name: 'ultra-sun-ultra-moon', url: 'https://pokeapi.co/api/v2/version-group/18/'}}]}, {move: {name: 'electroweb', url: 'https://pokeapi.co/api/v2/move/527/'}, version_group_details: [{level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'black-2-white-2', url: 'https://pokeapi.co/api/v2/version-group/14/'}}, {level_learned_at: 0, move_learn_method: {name: 'tutor', url: 'https://pokeapi.co/api/v2/move-learn-method/3/'}, version_group: {name: 'omega-ruby-alpha-sapphire', url: 'https://pokeapi.co/api/v2/version-group/16/'}}]}],
+      name: 'caterpie',
+      order: 14,
+      species: {name: 'caterpie', url: 'https://pokeapi.co/api/v2/pokemon-species/10/'},
+      sprites: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/10.png', back_female: null, back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/back/shiny/10.png', back_shiny_female: null, front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/shiny/10.png', front_shiny_female: null, other: {dream_world: {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/dream-world/10.svg', front_female: null}, 'official-artwork': {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10.png'}}, versions: {'generation-i': {'red-blue': {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/10.png', back_gray: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/back/gray/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/10.png', front_gray: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/red-blue/gray/10.png'}, yellow: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/back/10.png', back_gray: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/back/gray/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/10.png', front_gray: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-i/yellow/gray/10.png'}}, 'generation-ii': {crystal: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/crystal/back/10.png', back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/crystal/back/shiny/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/crystal/10.png', front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/crystal/shiny/10.png'}, gold: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/gold/back/10.png', back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/gold/back/shiny/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/gold/10.png', front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/gold/shiny/10.png'}, silver: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/silver/back/10.png', back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/silver/back/shiny/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/silver/10.png', front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-ii/silver/shiny/10.png'}}, 'generation-iii': {emerald: {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/emerald/10.png', front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/emerald/shiny/10.png'}, 'firered-leafgreen': {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/firered-leafgreen/back/10.png', back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/firered-leafgreen/back/shiny/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/firered-leafgreen/10.png', front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/firered-leafgreen/shiny/10.png'}, 'ruby-sapphire': {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/ruby-sapphire/back/10.png', back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/ruby-sapphire/back/shiny/10.png', front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/ruby-sapphire/10.png', front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iii/ruby-sapphire/shiny/10.png'}}, 'generation-iv': {'diamond-pearl': {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/diamond-pearl/back/10.png', back_female: null, back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/diamond-pearl/back/shiny/10.png', back_shiny_female: null, front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/diamond-pearl/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/diamond-pearl/shiny/10.png', front_shiny_female: null}, 'heartgold-soulsilver': {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/heartgold-soulsilver/back/10.png', back_female: null, back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/heartgold-soulsilver/back/shiny/10.png', back_shiny_female: null, front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/heartgold-soulsilver/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/heartgold-soulsilver/shiny/10.png', front_shiny_female: null}, platinum: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/platinum/back/10.png', back_female: null, back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/platinum/back/shiny/10.png', back_shiny_female: null, front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/platinum/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-iv/platinum/shiny/10.png', front_shiny_female: null}}, 'generation-v': {'black-white': {animated: {back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/10.gif', back_female: null, back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/back/shiny/10.gif', back_shiny_female: null, front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/10.gif', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/animated/shiny/10.gif', front_shiny_female: null}, back_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/back/10.png', back_female: null, back_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/back/shiny/10.png', back_shiny_female: null, front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-v/black-white/shiny/10.png', front_shiny_female: null}}, 'generation-vi': {'omegaruby-alphasapphire': {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vi/omegaruby-alphasapphire/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vi/omegaruby-alphasapphire/shiny/10.png', front_shiny_female: null}, 'x-y': {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vi/x-y/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vi/x-y/shiny/10.png', front_shiny_female: null}}, 'generation-vii': {icons: {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/icons/10.png', front_female: null}, 'ultra-sun-ultra-moon': {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/ultra-sun-ultra-moon/10.png', front_female: null, front_shiny: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-vii/ultra-sun-ultra-moon/shiny/10.png', front_shiny_female: null}}, 'generation-viii': {icons: {front_default: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/versions/generation-viii/icons/10.png', front_female: null}}}},
+      stats: [{base_stat: 45, effort: 1, stat: {name: 'hp', url: 'https://pokeapi.co/api/v2/stat/1/'}}, {base_stat: 30, effort: 0, stat: {name: 'attack', url: 'https://pokeapi.co/api/v2/stat/2/'}}, {base_stat: 35, effort: 0, stat: {name: 'defense', url: 'https://pokeapi.co/api/v2/stat/3/'}}, {base_stat: 20, effort: 0, stat: {name: 'special-attack', url: 'https://pokeapi.co/api/v2/stat/4/'}}, {base_stat: 20, effort: 0, stat: {name: 'special-defense', url: 'https://pokeapi.co/api/v2/stat/5/'}}, {base_stat: 45, effort: 0, stat: {name: 'speed', url: 'https://pokeapi.co/api/v2/stat/6/'}}],
+      types: [{slot: 1, type: {name: 'bug', url: 'https://pokeapi.co/api/v2/type/7/'}}],
+      weight: 29
+    };
+}
