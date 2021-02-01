@@ -14,10 +14,10 @@
           <th style="text-align: center">Details</th>
         </tr>
       </ng-template>
-      <ng-template pTemplate="body" let-pokemon let-i="rowIndex">
+      <ng-template pTemplate="body" let-pokemon>
         <tr>
           <td style="text-align: center">{{pokemon.name}}</td>
-          <td style="text-align: center"><i class="pi pi-info-circle" (click)="showDetails(i)"></i></td>
+          <td style="text-align: center"><i class="pi pi-info-circle" (click)="showDetails(pokemon)"></i></td>
         </tr>
       </ng-template>
 

@@ -9,7 +9,7 @@ import { HttpClientModule} from '@angular/common/http';
 import { DetailPageComponent } from './components/detail-page/detail-page.component';
 import {ButtonModule} from 'primeng/button';
 import {CardModule} from 'primeng/card';
-import {TreeModule} from "primeng/tree";
+import {TreeModule} from 'primeng/tree';
 
 @NgModule({
   declarations: [

@@ -12,10 +12,6 @@ export class PokemonService {
 
   constructor(private http: HttpClient) { }
 
-  getAllPokemon(): Observable<any> {
-    return this.http.get(this.url + this.pokemonSuffix, {headers: { 'Access-Control-Allow-Origin': '*' }});
-  }
-
   getPokemonWithOffset(offset: number): Observable<any> {
     return this.http.get(this.url + this.pokemonSuffix + '?offset=' + offset + '&limit=20"',
       {headers: { 'Access-Control-Allow-Origin': '*' }});
@@ -34,7 +30,6 @@ export class PokemonService {
   getEvolutionChain(urlToEvolution: string): Observable<any> {
     return this.http.get(urlToEvolution, {headers: { 'Access-Control-Allow-Origin': '*' }});
   }
-
 
   findSpecies(chain: any, speciesName: string): any {
     // for this logic, it is assumed that each species can only evolve into one species (step-by-step evolution)

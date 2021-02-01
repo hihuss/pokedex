@@ -1,7 +1,7 @@
 <div *ngIf="pokemon" class="p-grid" style="justify-content: center">
 
   <div class="p-col-12" style="text-align: center">
-    <h2>Detail information about <span style="color: red"></span> {{pokemon.name.toUpperCase()}}</h2>
+    <h2>Detail information about <span id="pokemonName" style="color: red">{{pokemon.name.toUpperCase()}}</span> </h2>
   </div>
 
   <br/>
@@ -10,10 +10,10 @@
   <p-card class="p-col-8" [header]="'Name: ' + pokemon.name.toUpperCase()"  styleClass="p-card-shadow">
     <div style="display: flex">
       <div class="p-col-5" style="float:left;">
-        <img id="pokemon-image" alt="Pokemon" src="assets/pokemon_logo.png">
+        <img id="pokemon-image" alt="Pokemon picture unavailable" [src]="pokemon.sprites.front_default">
       </div >
       <div class="p-col-7">
-        <p-tree [value]="pokemonDataTree"></p-tree>
+        <p-tree class="pokemon-tree" [value]="pokemonDataTree"></p-tree>
       </div>
     </div>
     <ng-template pTemplate="footer">
@@ -22,3 +22,5 @@
   </p-card>
 
 </div>
+
+<div id="shan">Hey there</div>

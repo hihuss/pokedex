@@ -25,26 +25,16 @@ export class OverviewComponent implements OnInit {
   loadPokemon($event: any): void {
     this.loading = true;
 
-    if (!$event.first) {
-      this.pokemonService.getAllPokemon().subscribe(data => {
-        this.pokemonData = data;
-        this.pokemonList = data.results;
+    this.pokemonService.getPokemonWithOffset($event.first ? $event.first : 0).subscribe(data => {
+      this.pokemonData = data;
+      this.pokemonList = data.results;
 
-        this.loading = false;
-      });
-    } else {
-
-      this.pokemonService.getPokemonWithOffset($event.first).subscribe(data => {
-        this.pokemonData = data;
-        this.pokemonList = data.results;
-
-        this.loading = false;
-      });
-    }
+      this.loading = false;
+    });
   }
 
-  showDetails(index: number): void{
-    // becuase ids start from 1 and not zero
-    this.route.navigate(['details/' + (index + 1)]);
+  showDetails(pokemon: any): void{
+    const urlParts = pokemon.url.split('\/');
+    this.route.navigate(['details/' + urlParts[urlParts.length - 2]]);
   }
 }
